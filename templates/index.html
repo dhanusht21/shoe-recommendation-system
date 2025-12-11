@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ShoeStore – AI Recommendation System</title>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #f7f7f7, #ffffff);
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            background-color: #222;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .cart-bar {
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            background: #ff5c00;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        form {
+            margin: 30px auto;
+            background: #fff;
+            display: inline-block;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        input[type="text"], select {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #ff5c00;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #ff7a33;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .recommendation {
+            background: white;
+            border-radius: 15px;
+            width: 230px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .recommendation:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+        }
+
+        .recommendation img {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .recommendation h3 {
+            color: #333;
+            font-size: 18px;
+            margin: 10px 0 5px;
+        }
+
+        .price {
+            color: #ff5c00;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .buttons {
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .btn-cart { background-color: #28a745; }
+        .btn-cart:hover { background-color: #33c258; }
+        .btn-buy { background-color: #007bff; }
+        .btn-buy:hover { background-color: #2894ff; }
+
+        /* Popup base */
+        .popup {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            width: 400px;
+            text-align: left;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .popup-content h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        label { display: block; margin-top: 10px; font-weight: 600; }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        .pay-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .pay-btn:hover { background: #33c258; }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+        }
+
+        .cart-total {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding: 15px;
+            background: #222;
+            color: #ccc;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>👟 ShoeStore – AI based Hybrid Recommendation System</h1>
+    <div class="cart-bar" onclick="openCart()">🛒 Cart: <span id="cart-count">0</span></div>
+
+    <form method="post">
+        <input type="text" name="user_id" placeholder="Enter User ID" required value="{{ user_id or '' }}">
+        <select name="method">
+            <option value="collab" {% if method == 'collab' %}selected{% endif %}>Collaborative Filtering</option>
+            <option value="slp" {% if method == 'slp' %}selected{% endif %}>Single Layer Perceptron (SLP)</option>
+            <option value="mlp" {% if method == 'mlp' %}selected{% endif %}>Multi Layer Perceptron (MLP)</option>
+        </select>
+        <button type="submit">Get Recommendations</button>
+    </form>
+
+    <h2>Recommended Shoes</h2>
+    <div class="recommendation-container">
+        {% for rec in recommendations %}
+            <div class="recommendation">
+                <img src="{{ rec.image_url }}" alt="{{ rec.title }}">
+                <h3>{{ rec.title }}</h3>
+                <p class="price">₹{{ loop.index * 999 }}</p>
+                <div class="buttons">
+                    <button class="btn-small btn-cart" onclick="addToCart('{{ rec.title }}', '{{ rec.image_url }}', {{ loop.index * 999 }})">Add to Cart</button>
+                    <button class="btn-small btn-buy" onclick="openPayment('{{ rec.title }}', {{ loop.index * 999 }})">Buy Now</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Cart View Popup -->
+    <div id="cartPopup" class="popup">
+        <div class="popup-content">
+            <h3>🛒 Your Shopping Cart</h3>
+            <div id="cart-items"></div>
+            <div class="cart-total" id="cart-total"></div>
+            <button class="pay-btn" onclick="checkoutCart()">Checkout</button>
+            <button class="pay-btn" style="background:#ccc; color:#000" onclick="closeCart()">Close</button>
+        </div>
+    </div>
+
+    <!-- Payment Gateway Popup -->
+    <div id="paymentPopup" class="popup">
+        <div class="popup-content">
+            <h3>💳 Secure Payment</h3>
+            <p id="paymentItem"></p>
+            <label>Payment Method:</label>
+            <select id="payMethod">
+                <option>Credit/Debit Card</option>
+                <option>UPI</option>
+                <option>Wallet</option>
+            </select>
+
+            <div id="cardDetails">
+                <label>Card Number:</label>
+                <input type="number" placeholder="1234 5678 9876 5432">
+                <label>Expiry:</label>
+                <input type="text" placeholder="MM/YY">
+                <label>CVV:</label>
+                <input type="number" placeholder="123">
+            </div>
+
+            <button class="pay-btn" onclick="completePayment()">Pay Now</button>
+            <button class="pay-btn" style="background:#ccc; color:#000" onclick="closePayment()">Cancel</button>
+        </div>
+    </div>
+
+    <footer>© 2025 ShoeStore.ai – Smart Shoe Recommender System</footer>
+
+    <script>
+        let cart = [];
+        let selectedItem = "";
+
+        function addToCart(itemName, img, price) {
+            cart.push({ name: itemName, image: img, price: price });
+            document.getElementById('cart-count').innerText = cart.length;
+            alert(itemName + " added to cart 🛒");
+        }
+
+        function openCart() {
+            let cartItemsDiv = document.getElementById('cart-items');
+            cartItemsDiv.innerHTML = "";
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.price;
+                cartItemsDiv.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="">
+                        <span>${item.name}</span>
+                        <span>₹${item.price}</span>
+                    </div>`;
+            });
+
+            if (cart.length === 0) {
+                cartItemsDiv.innerHTML = "<p>Your cart is empty 🛍️</p>";
+                document.getElementById('cart-total').innerText = "";
+            } else {
+                document.getElementById('cart-total').innerText = "Total: ₹" + total;
+            }
+
+            document.getElementById('cartPopup').style.display = 'flex';
+        }
+
+        function closeCart() {
+            document.getElementById('cartPopup').style.display = 'none';
+        }
+
+        function checkoutCart() {
+            if (cart.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+            closeCart();
+            openPayment("Cart Checkout (" + cart.length + " items)", cart.reduce((t, i) => t + i.price, 0));
+        }
+
+        function openPayment(itemName, price) {
+            selectedItem = itemName;
+            document.getElementById('paymentItem').innerText = "You are buying: " + itemName + " – ₹" + price;
+            document.getElementById('paymentPopup').style.display = 'flex';
+        }
+
+        function closePayment() {
+            document.getElementById('paymentPopup').style.display = 'none';
+        }
+
+        function completePayment() {
+            alert("✅ Payment Successful for " + selectedItem + "! Thank you for shopping!");
+            cart = [];
+            document.getElementById('cart-count').innerText = 0;
+            closePayment();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
