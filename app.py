@@ -33,7 +33,7 @@ product_catalog = products_df.set_index('item_id').to_dict('index')
 
 
 # ---- Collaborative Filtering Recommender ----
-def recommend_collab(user_id, top_n=6):
+def recommend_collab(user_id, top_n=10):
     # If user is unknown, show top popular items
     if user_id not in user_encoder.classes_:
         top_items_enc = item_popularity.index[:top_n].tolist()
@@ -65,7 +65,7 @@ def recommend_collab(user_id, top_n=6):
 
 
 # ---- Neural Network Recommender (SLP & MLP) ----
-def recommend_nn(user_id, model, top_n=8):
+def recommend_nn(user_id, model, top_n=20):
 
     # If unknown user → show popular items
     if user_id not in user_encoder.classes_:
@@ -119,9 +119,9 @@ def index():
         if method == 'collab':
             recommendations = recommend_collab(user_id)
         elif method == 'slp':
-            recommendations = recommend_nn(user_id, slp_model,top_n=5)
+            recommendations = recommend_nn(user_id, slp_model,top_n=20)
         elif method == 'mlp':
-            recommendations = recommend_nn(user_id, mlp_model,top_n=8)
+            recommendations = recommend_nn(user_id, mlp_model,top_n=20)
 
     return render_template('index.html', recommendations=recommendations, user_id=user_id, method=method)
 

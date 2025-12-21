@@ -193,9 +193,9 @@
         }
 
         .cart-item img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
+            width: 65px;
+            height: 65px;
+            border-radius: 10px;
         }
 
         .cart-total {
@@ -212,110 +212,230 @@
             color: #ccc;
             font-size: 14px;
         }
-    </style>
-</head>
-<body>
-    <h1>👟 ShoeStore – AI based Hybrid Recommendation System</h1>
-    <div class="cart-bar" onclick="openCart()">🛒 Cart: <span id="cart-count">0</span></div>
+        /* --- UPI ICON ADD-ON --- */
+        .upi-icons {
+            display: flex;
+            justify-content: space-evenly;
+            margin: 15px 0;
+        }
 
-    <form method="post">
-        <input type="text" name="user_id" placeholder="Enter User ID" required value="{{ user_id or '' }}">
-        <select name="method">
-            <option value="collab" {% if method == 'collab' %}selected{% endif %}>Collaborative Filtering</option>
-            <option value="slp" {% if method == 'slp' %}selected{% endif %}>Single Layer Perceptron (SLP)</option>
-            <option value="mlp" {% if method == 'mlp' %}selected{% endif %}>Multi Layer Perceptron (MLP)</option>
-        </select>
-        <button type="submit">Get Recommendations</button>
-    </form>
+        .upi-icons img {
+            width: 60px;
+            cursor: pointer;
+            border-radius: 10px;
+            padding: 5px;
+            border: 2px solid transparent;
+            transition: 0.3s;
+        }
 
-    <h2>Recommended Shoes</h2>
-    <div class="recommendation-container">
-        {% for rec in recommendations %}
-            <div class="recommendation">
-                <img src="{{ rec.image_url }}" alt="{{ rec.title }}">
-                <h3>{{ rec.title }}</h3>
-                <p class="price">₹{{ loop.index * 999 }}</p>
-                <div class="buttons">
-                    <button class="btn-small btn-cart" onclick="addToCart('{{ rec.title }}', '{{ rec.image_url }}', {{ loop.index * 999 }})">Add to Cart</button>
-                    <button class="btn-small btn-buy" onclick="openPayment('{{ rec.title }}', {{ loop.index * 999 }})">Buy Now</button>
+        .upi-icons img:hover {
+            transform: scale(1.1);
+        }
+
+        .upi-icons img.active {
+            border-color: #28a745;
+        }
+        .upi-icons {
+            display: flex;
+            justify-content: space-evenly;
+            margin: 15px 0;
+        }
+
+        .upi-icons img {
+            width: 65px;
+            padding: 8px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upi-icons img.active {
+            border-color: #28a745;
+            box-shadow: 0 0 8px rgba(40,167,69,0.6);
+        }
+
+        </style>
+        </head>
+        <body>
+            <h1>👟 ShoeStore – AI based Hybrid Recommendation System</h1>
+            <div class="cart-bar" onclick="openCart()">🛒 Cart: <span id="cart-count">0</span></div>
+            <div class="cart-bar" style="right:120px;background:#0d6efd" onclick="openAccount()">
+            👤 Account
+            </div>
+
+            <form method="post">
+                <input type="text" name="user_id" placeholder="Enter User ID" required value="{{ user_id or '' }}">
+                <select name="method">
+                    <option value="collab" {% if method == 'collab' %}selected{% endif %}>Collaborative Filtering</option>
+                    <option value="slp" {% if method == 'slp' %}selected{% endif %}>Single Layer Perceptron (SLP)</option>
+                    <option value="mlp" {% if method == 'mlp' %}selected{% endif %}>Multi Layer Perceptron (MLP)</option>
+                </select>
+                <button type="submit">Get Recommendations</button>
+            </form>
+
+            <h2>Recommended Shoes</h2>
+            <div class="recommendation-container">
+                {% for rec in recommendations %}
+                    <div class="recommendation">
+                        <img src="{{ rec.image_url }}" alt="{{ rec.title }}">
+                        <h3>{{ rec.title }}</h3>
+                        <p class="price">₹{{ loop.index * 999 }}</p>
+                        <div class="buttons">
+                            <button class="btn-small btn-cart" onclick="addToCart('{{ rec.title }}', '{{ rec.image_url }}', {{ loop.index * 999 }})">Add to Cart</button>
+                            <button class="btn-small btn-buy" onclick="openPayment('{{ rec.title }}', {{ loop.index * 999 }})">Buy Now</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Cart View Popup -->
+            <div id="cartPopup" class="popup">
+                <div class="popup-content">
+                    <h3>🛒 Your Shopping Cart</h3>
+                    <div id="cart-items"></div>
+                    <div class="cart-total" id="cart-total"></div>
+                    <button class="pay-btn" onclick="checkoutCart()">Checkout</button>
+                    <button class="pay-btn" style="background:#ccc; color:#000" onclick="closeCart()">Close</button>
                 </div>
             </div>
-        {% endfor %}
-    </div>
+            
+            <div id="accountPopup" class="popup">
+                <div class="popup-content">
+                <h3>👤 Your Orders</h3>
+                <div id="orderList"></div>
 
-    <!-- Cart View Popup -->
-    <div id="cartPopup" class="popup">
-        <div class="popup-content">
-            <h3>🛒 Your Shopping Cart</h3>
-            <div id="cart-items"></div>
-            <div class="cart-total" id="cart-total"></div>
-            <button class="pay-btn" onclick="checkoutCart()">Checkout</button>
-            <button class="pay-btn" style="background:#ccc; color:#000" onclick="closeCart()">Close</button>
-        </div>
-    </div>
-
-    <!-- Payment Gateway Popup -->
-    <div id="paymentPopup" class="popup">
-        <div class="popup-content">
-            <h3>💳 Secure Payment</h3>
-            <p id="paymentItem"></p>
-            <label>Payment Method:</label>
-            <select id="payMethod">
-                <option>Credit/Debit Card</option>
-                <option>UPI</option>
-                <option>Wallet</option>
-            </select>
-
-            <div id="cardDetails">
-                <label>Card Number:</label>
-                <input type="number" placeholder="1234 5678 9876 5432">
-                <label>Expiry:</label>
-                <input type="text" placeholder="MM/YY">
-                <label>CVV:</label>
-                <input type="number" placeholder="123">
+                <button class="pay-btn" style="background:#ccc;color:#000" onclick="closeAccount()">
+                    Close
+                </button>
+                </div>
             </div>
 
-            <button class="pay-btn" onclick="completePayment()">Pay Now</button>
-            <button class="pay-btn" style="background:#ccc; color:#000" onclick="closePayment()">Cancel</button>
+
+        <!-- Payment Gateway Popup -->
+        <div id="paymentPopup" class="popup">
+            <div class="popup-content">
+                <h3>💳 Secure Payment</h3>
+                <p id="paymentItem"></p>
+                <label>Payment Method:</label>
+                <select id="payMethod">
+                    <option>Credit/Debit Card</option>
+                    <option>UPI</option>
+                </select>
+
+                <div id="cardDetails">
+                    <label>Card Number:</label>
+                    <input type="number" placeholder="1234 5678 9876 5432">
+                    <label>Expiry:</label>
+                    <input type="text" placeholder="MM/YY">
+                    <label>CVV:</label>
+                    <input type="number" placeholder="123">
+                </div>
+                <div id="upiDetails" style="display:none;">
+                <div class="upi-icons">
+                    <img src="/static/images/gpay.png" id="gpay" onclick="selectUPI('GPay')">
+                    <img src="/static/images/phonepe.png" id="phonepe" onclick="selectUPI('PhonePe')">
+                </div>
+
+                <!-- OTHER UPI OPTION -->
+                <label style="margin-top:10px;">
+                <input type="radio" name="upiType" onclick="selectUPI('OTHER')">
+                    Other UPI ID
+                </label>
+
+                <input type="text" id="upiId"
+            placeholder="example@upi"
+            style="display:none;"
+            oninput="validateUPI()">
+                </div>
+
+
+                <button class="pay-btn" onclick="completePayment()">Pay Now</button>
+                <button class="pay-btn" style="background:#ccc; color:#000" onclick="closePayment()">Cancel</button>
+            </div>
         </div>
-    </div>
+        
+        
 
-    <footer>© 2025 ShoeStore.ai – Smart Shoe Recommender System</footer>
+        <footer>© 2025 ShoeStore.ai – Smart Shoe Recommender System</footer>
 
-    <script>
-        let cart = [];
-        let selectedItem = "";
+        <script>
+            /* FAKE GATEWAY FAILURE UPI IDs */
+            const GATEWAY_FAIL_UPI = ["fail@upi", "bankdown@upi"];
 
-        function addToCart(itemName, img, price) {
-            cart.push({ name: itemName, image: img, price: price });
-            document.getElementById('cart-count').innerText = cart.length;
-            alert(itemName + " added to cart 🛒");
-        }
-
-        function openCart() {
-            let cartItemsDiv = document.getElementById('cart-items');
-            cartItemsDiv.innerHTML = "";
-            let total = 0;
-
-            cart.forEach(item => {
-                total += item.price;
-                cartItemsDiv.innerHTML += `
-                    <div class="cart-item">
-                        <img src="${item.image}" alt="">
-                        <span>${item.name}</span>
-                        <span>₹${item.price}</span>
-                    </div>`;
-            });
-
-            if (cart.length === 0) {
-                cartItemsDiv.innerHTML = "<p>Your cart is empty 🛍️</p>";
-                document.getElementById('cart-total').innerText = "";
-            } else {
-                document.getElementById('cart-total').innerText = "Total: ₹" + total;
+            function isGatewayFailureUPI(upi) {
+                return GATEWAY_FAIL_UPI.includes(upi.toLowerCase());
             }
 
-            document.getElementById('cartPopup').style.display = 'flex';
+            let cart = [];
+            let selectedItem = "";
+
+            function addToCart(itemName, img, price) {
+                cart.push({ name: itemName, image: img, price: price });
+                document.getElementById('cart-count').innerText = cart.length;
+                alert(itemName + " added to cart 🛒");
+            }
+
+            function openCart() {
+                let cartItemsDiv = document.getElementById('cart-items');
+                cartItemsDiv.innerHTML = "";
+                let total = 0;
+
+                cart.forEach(item => {
+                    total += item.price;
+                    cartItemsDiv.innerHTML += `
+                        <div class="cart-item">
+                            <img src="${item.image}" alt="">
+                            <span>${item.name}</span>
+                            <span>₹${item.price}</span>
+                        </div>`;
+                });
+
+                if (cart.length === 0) {
+                    cartItemsDiv.innerHTML = "<p>Your cart is empty 🛍️</p>";
+                    document.getElementById('cart-total').innerText = "";
+                } else {
+                    document.getElementById('cart-total').innerText = "Total: ₹" + total;
+                }
+
+                document.getElementById('cartPopup').style.display = 'flex';
+            }
+
+            function openAccount() {
+                let orders = JSON.parse(localStorage.getItem("orders")) || [];
+                let orderDiv = document.getElementById("orderList");
+                orderDiv.innerHTML = "";
+
+                if (orders.length === 0) {
+                    orderDiv.innerHTML = "<p>No successful orders found.</p>";
+                } else {
+                    orders.forEach(o => {
+                        // Use data-order to safely store the JSON string
+                        orderDiv.innerHTML += `
+                            <div style="border-bottom:1px solid #ddd;padding:10px 0">
+                                <p><b>Order ID:</b> ${o.id}</p>
+                                <p><b>Shoe:</b> ${o.item}</p>
+                                <p><b>Amount:</b> ₹${o.price}</p>
+                                <p><b>Payment:</b> ${o.method}</p>
+                                <p><b>Status:</b> ${o.status || "SUCCESS"}</p>
+
+                                ${o.status === "FAILED"
+                                    ? `<p style="color:red"><b>Reason:</b> ${o.message || "Payment failed"}</p>`
+                                : `<button class="download-invoice-btn" data-order='${JSON.stringify(o).replace(/'/g,"&#39;")}'>
+                                    ⬇ View / Download Invoice
+                                </button>`}
+                        </div>
+                    `;
+                });
+                    }
+
+        document.getElementById("accountPopup").style.display = "flex";
+}
+
+        function closeAccount() {
+            document.getElementById("accountPopup").style.display = "none";
         }
+
 
         function closeCart() {
             document.getElementById('cartPopup').style.display = 'none';
@@ -329,24 +449,239 @@
             closeCart();
             openPayment("Cart Checkout (" + cart.length + " items)", cart.reduce((t, i) => t + i.price, 0));
         }
+        
+        document.getElementById("payMethod").addEventListener("change", function () {
+            let method = this.value;
+            document.getElementById("cardDetails").style.display = method === "UPI" ? "none" : "block";
+            document.getElementById("upiDetails").style.display = method === "UPI" ? "block" : "none";
+        });
+
+
 
         function openPayment(itemName, price) {
             selectedItem = itemName;
-            document.getElementById('paymentItem').innerText = "You are buying: " + itemName + " – ₹" + price;
-            document.getElementById('paymentPopup').style.display = 'flex';
+            selectedPrice = price;
+
+    // RESET UPI
+            selectedUPIApp = "";
+            selectedUPIType = "";
+            document.getElementById("gpay").classList.remove("active");
+            document.getElementById("phonepe").classList.remove("active");
+            document.getElementById("upiId").value = "";
+            document.getElementById("upiId").style.display = "none";
+
+            document.getElementById("paymentItem").innerText =
+                "You are buying: " + itemName + " – ₹" + price;
+
+            document.getElementById("paymentPopup").style.display = "flex";
+        }
+
+         function completePayment() {
+            let method = document.getElementById("payMethod").value;
+            let paymentSuccess = false;
+            if (method === "UPI") {
+
+        // Force manual selection
+                if (!selectedUPIApp && selectedUPIType !== "OTHER") {
+                    alert("❌ Please select GPay, PhonePe, or Other UPI");
+                    return;
+                }
+
+        // GPay / PhonePe
+                if (selectedUPIApp) {
+                    alert("✅ Your " + selectedUPIApp + " payment was successful!");
+                    paymentSuccess = true;
+                }
+
+        // Other UPI
+                else {
+                    if (!validateUPI()) {
+                        alert("❌ Invalid UPI ID");
+                            return; // ❌ DO NOT SAVE ORDER
+                    }
+                    let upi = document.getElementById("upiId").value.trim();
+
+                    if (isGatewayFailureUPI(upi)) {
+                        alert("❌ Payment failed due to bank/gateway issue");
+                        saveFailedOrder(method,"Gateway failure – bank/server issue"); // ❌ FAILED ORDER SAVED
+                        return;
+                    }
+                    alert("✅ Your UPI payment was successful!");
+                    paymentSuccess = true;
+                }
+            }
+            else {
+                let cardNumber = document.querySelector("#cardDetails input[type='number']").value;
+                let expiry = document.querySelector("#cardDetails input[type='text']").value;
+                let cvv = document.querySelectorAll("#cardDetails input[type='number']")[1].value;
+
+            if (
+                !/^\d{16}$/.test(cardNumber) ||
+                !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry) ||
+                !/^\d{3}$/.test(cvv)
+            ) {
+                alert("❌ Invalid card details");
+                return;
+            }
+            paymentSuccess = true;
+            }
+        // ✅ SAVE ORDER + SHOW INVOICE AFTER SUCCESS
+            if (paymentSuccess) {
+                saveOrder(selectedItem, selectedPrice, method);
+
+                cart = [];
+                document.getElementById("cart-count").innerText = 0;
+                closePayment();
+            }
+        }
+        function saveFailedOrder(method,reason) {
+            let orders = JSON.parse(localStorage.getItem("orders")) || [];
+            
+            orders.push({
+                id: "ORD" + Date.now(),
+                item: selectedItem || "N/A",
+                price: selectedPrice || "N/A",
+                method: method,
+                status: "FAILED",
+                message:reason,
+                date: new Date().toLocaleString()
+            });
+        localStorage.setItem("orders", JSON.stringify(orders));
+        }
+
+        let selectedUPIApp = "";
+        let selectedUPIType = "";
+
+        function selectUPI(type) {
+            selectedUPIType = type;
+            selectedUPIApp = "";
+
+    // reset UI
+            document.getElementById("gpay").classList.remove("active");
+            document.getElementById("phonepe").classList.remove("active");
+            document.getElementById("upiId").style.display = "none";
+
+            if (type === "GPay" || type === "PhonePe") {
+                selectedUPIApp = type;
+                document.getElementById(type === "GPay" ? "gpay" : "phonepe")
+                .classList.add("active");
+            }
+
+            if (type === "OTHER") {
+                document.getElementById("upiId").style.display = "block";
+            }
+        }
+        function validateUPI() {
+                let upi = document.getElementById("upiId").value.trim();
+                let regex = /^[\w.-]+@[\w.-]+$/;
+                return regex.test(upi);
         }
 
         function closePayment() {
             document.getElementById('paymentPopup').style.display = 'none';
         }
+        
+        function saveOrder(itemName, amount, paymentMethod) {
+            let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
-        function completePayment() {
-            alert("✅ Payment Successful for " + selectedItem + "! Thank you for shopping!");
-            cart = [];
-            document.getElementById('cart-count').innerText = 0;
-            closePayment();
+            let order = {
+            id: "ORD" + Date.now(),
+            item: itemName,
+            price: amount,
+            method: paymentMethod,
+            date: new Date().toLocaleString()
+        };
+
+        orders.push(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        
         }
-    </script>
+    
+    function downloadInvoice(order) {
+    // SAFETY CHECK
+            if (!order) {
+            alert("❌ Invoice data not found");
+            return;
+            }
+
+            let popup = window.open("", "Invoice", "width=600,height=650");
+
+            if (!popup) {
+                alert("❌ Popup blocked. Please allow popups.");
+                return;
+            }
+
+            popup.document.write(`
+            <html>
+            <head>
+                <title>Shoe Store Invoice</title>
+                <style>
+                    body {
+                        font-family: Arial;
+                        padding: 30px;
+                    }
+                    h2 {
+                        text-align: center;
+                    }
+                    .box {
+                        border: 1px solid #000;
+                        padding: 20px;
+                    }
+                    .row {
+                        margin: 10px 0;
+                    }
+                    .label {
+                        font-weight: bold;
+                    }
+                    .footer {
+                        margin-top: 30px;
+                        text-align: center;
+                        font-size: 14px;
+                    }
+                    button {
+                        margin-top: 20px;
+                        padding: 10px 15px;
+                        cursor: pointer;
+                    }
+                </style>
+            </head>
+            <body>
+
+            <h2>🧾 Shoe Store Invoice</h2>
+
+            <div class="box">
+                <div class="row"><span class="label">Order ID:</span> ${order.id}</div>
+                <div class="row"><span class="label">Shoe Name:</span> ${order.item}</div>
+                <div class="row"><span class="label">Amount:</span> ₹${order.price}</div>
+                <div class="row"><span class="label">Payment Method:</span> ${order.method}</div>
+                <div class="row"><span class="label">Date:</span> ${order.date}</div>
+            </div>
+
+            <div class="footer">
+                Thank you for shopping with Shoe Store 👟
+            </div>
+
+            <center>
+                <button onclick="window.print()">⬇ Print / Save as PDF</button>
+            </center>
+
+            </body>
+            </html>
+        `);
+
+        popup.document.close();
+    }
+
+    document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('download-invoice-btn')) {
+                    let orderData = e.target.getAttribute('data-order');
+                    let order = JSON.parse(orderData);
+                    downloadInvoice(order); // pass full object to your existing function
+                }
+    });
+
+</script> 
 </body>
 </html>
 

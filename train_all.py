@@ -7,12 +7,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from scipy.sparse import csr_matrix
 
-# ---------------- Config ----------------
 DATA_PATH = os.path.join("data", "ratings.csv")   # change if needed
 MODELS_DIR = "modells"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
-# ---------------- Load or Generate Data ----------------
+# Load Data
 
 if os.path.exists(DATA_PATH):
     print(f"Loading dataset from {DATA_PATH}")
@@ -44,7 +43,7 @@ else:
 print("Dataset shape:", df.shape)
 print(df.head())
 
-# ---------------- Encode users and items ----------------
+# Encoding users and items
 user_encoder = LabelEncoder()
 item_encoder = LabelEncoder()
 
@@ -55,7 +54,7 @@ num_users = df['user_enc'].nunique()
 num_items = df['item_enc'].nunique()
 print(f"Unique users: {num_users}, unique items: {num_items}")
 
-# ---------------- Prepare X and y ----------------
+#Prepare X as user value and y as target to attain
 X = df[['user_enc', 'item_enc']].values
 y = df['rating'].values
 
@@ -66,19 +65,19 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# ---------------- Train SLP (single hidden layer) ----------------
+#Train SLP(single hidden layer)
 print("\nTraining SLP (MLPRegressor, one hidden layer)...")
 slp_model = MLPRegressor(hidden_layer_sizes=(16,), max_iter=500, random_state=42, verbose=True)
 slp_model.fit(X_train, y_train)
 print("SLP training finished.")
 
-# ---------------- Train deeper MLP ----------------
+#Train MLP 
 print("\nTraining MLP (MLPRegressor, multiple hidden layers)...")
 mlp_model = MLPRegressor(hidden_layer_sizes=(64, 32, 16), max_iter=500, random_state=42, verbose=True)
 mlp_model.fit(X_train, y_train)
 print("MLP training finished.")
 
-# ---------------- Build user-item sparse matrix ----------------
+# Building user-item sparse matrix 
 print("\nBuilding user-item sparse matrix...")
 grouped = df.groupby(['user_enc', 'item_enc'])['rating'].mean().reset_index()
 user_item_sparse = csr_matrix(
@@ -86,11 +85,11 @@ user_item_sparse = csr_matrix(
     shape=(num_users, num_items)
 )
 
-# ---------------- Compute item popularity ----------------
+#Compute item popularity 
 # item_popularity: mean rating per encoded item, sorted descending
 item_popularity = df.groupby('item_enc')['rating'].mean().sort_values(ascending=False)
 
-# ---------------- Save models and artifacts ----------------
+#Save models and artifacts
 print("\nSaving models and encoders to 'modells/' ...")
 with open(os.path.join(MODELS_DIR, 'scaler.pkl'), 'wb') as f:
     pickle.dump(scaler, f)
@@ -121,7 +120,7 @@ print(" - modells/item_encoder.pkl")
 print(" - modells/user_item_sparse.pkl")
 print(" - modells/item_popularity.pkl")
 
-# ---------------- Quick verification ----------------
+#Quick verification
 print("\nQuick verification: load one model and run a sample prediction")
 with open(os.path.join(MODELS_DIR, 'mlp_model.pkl'), 'rb') as f:
     loaded_mlp = pickle.load(f)
