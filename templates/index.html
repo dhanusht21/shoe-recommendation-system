@@ -204,8 +204,62 @@
             margin-top: 15px;
             font-weight: bold;
         }
+        .cart-item {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+            }
 
-        footer {
+            .cart-item img {
+                width: 70px;
+                height: 70px;
+                border-radius: 10px;
+                object-fit: cover;
+            }
+
+            .cart-info {
+                flex: 1;
+            }
+
+            .cart-title {
+                font-size: 15px;
+                font-weight: 600;
+                color: #222;
+            }
+
+            .cart-sub {
+                font-size: 13px;
+                color: #777;
+                margin-top: 4px;
+            }
+
+            .cart-price {
+                font-size: 16px;
+                font-weight: bold;
+                color: #111;
+            }
+            .remove-btn {
+                margin-top: 8px;
+                padding: 4px 12px;
+                background: #ffe5e5;
+                border: 1px solid #ff4d4d;
+                color: #c70000;
+                font-size: 12px;
+                font-weight: 600;
+                border-radius: 999px; /* 🔥 CYLINDER / PILL SHAPE */
+                cursor: pointer;
+                transition: all 0.25s ease;
+            }
+
+            .remove-btn:hover {
+                background: #ff4d4d;
+                color: #fff;
+            }
+
+
+            footer {
             margin-top: 50px;
             padding: 15px;
             background: #222;
@@ -381,14 +435,24 @@
                 cartItemsDiv.innerHTML = "";
                 let total = 0;
 
-                cart.forEach(item => {
+                cart.forEach((item,index) => {
                     total += item.price;
                     cartItemsDiv.innerHTML += `
                         <div class="cart-item">
-                            <img src="${item.image}" alt="">
-                            <span>${item.name}</span>
-                            <span>₹${item.price}</span>
-                        </div>`;
+                        <img src="${item.image}" alt="">
+                        
+                        <div class="cart-info">
+                            <div class="cart-title">${item.name}</div>
+                            <div class="cart-sub">Sold by ShoeStore</div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">
+                            ❌ Remove
+                        </button>
+                        </div>
+
+                        <div class="cart-price">₹${item.price.toLocaleString()}</div>
+                    </div>
+                    `;
+
                 });
 
                 if (cart.length === 0) {
@@ -457,6 +521,11 @@
         });
 
 
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            document.getElementById("cart-count").innerText = cart.length;
+            openCart();
+        }
 
         function openPayment(itemName, price) {
             selectedItem = itemName;
